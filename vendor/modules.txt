@@ -10,6 +10,6 @@ github.com/ipthomas/tukcnst
 # github.com/ipthomas/tukhttp v0.0.0-20220912112750-4e1d4d870e93
 ## explicit; go 1.19
 github.com/ipthomas/tukhttp
-# github.com/ipthomas/tukutil v0.0.0-20220905174237-c8511de5bdec
+# github.com/ipthomas/tukutil v0.0.0-20220912190241-6f399bf71d4b
 ## explicit; go 1.19
 github.com/ipthomas/tukutil
