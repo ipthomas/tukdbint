@@ -10,5 +10,5 @@ require (
 
 require (
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/ipthomas/tukutil v1.0.5 // indirect
+	github.com/ipthomas/tukutil v1.0.6 // indirect
 )
