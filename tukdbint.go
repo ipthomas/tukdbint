@@ -6,21 +6,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"reflect"
 	"strings"
 	"time"
 
-	cons "github.com/ipthomas/tukcnst"
+	"github.com/ipthomas/tukcnst"
 	"github.com/ipthomas/tukhttp"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
-	DB_URL      = ""
-	DBConn      *sql.DB
-	hostname, _ = os.Hostname()
+	DB_URL = ""
+	DBConn *sql.DB
 )
 
 type TukDBConnection struct {
@@ -121,30 +119,9 @@ func NewDBEvent(i TUK_DB_Interface) error {
 	}
 }
 
-// functions to support building C header and output files
-// Ref https://pkg.go.dev/cmd/cgo
-
-// CGOOpenDBConnection supports the build of a C Header / Output for go method tukdbint.OpenDBConnection()
-//
-//export CGOOpenDBConnection
-func CGOOpenDBConnection(apiurl string, dbuser string, dbpwd string, dbhost string, dbport string, dbname string, dbtimeout string, dbreadtimeout string) {
-	i := TukDBConnection{
-		DBUser:        dbuser,
-		DBPassword:    dbpwd,
-		DBHost:        dbhost,
-		DBPort:        dbport,
-		DBName:        dbname,
-		DBTimeout:     dbtimeout,
-		DBReadTimeout: dbreadtimeout,
-		DB_URL:        apiurl,
-		DBReader_Only: false,
-	}
-	i.dbEvent()
-}
-
 // functions for mysql DB access via DSN
 
-func (i *TukDBConnection) dbEvent() error {
+func (i TukDBConnection) dbEvent() error {
 	var err error
 	if i.DB_URL != "" {
 		log.Println("Database API URL provided. Will connect to mysql instance via AWS API Gateway url " + i.DB_URL)
@@ -157,7 +134,7 @@ func (i *TukDBConnection) dbEvent() error {
 			i.DBPassword = "rootPass"
 		}
 		if i.DBHost == "" {
-			i.DBHost = hostname
+			i.DBHost = "localhost"
 		}
 		if i.DBPort == "" {
 			i.DBPort = ":3306"
@@ -191,20 +168,20 @@ func (i *TukDBConnection) dbEvent() error {
 			i.DBTimeout,
 			i.DBReadTimeout)
 		log.Println("No Database API URL provided. Opening DB Connection to mysql instance via DSN - " + dsn)
-		DBConn, err = sql.Open(cons.MYSQL, dsn)
+		DBConn, err = sql.Open(tukcnst.MYSQL, dsn)
 	}
 
 	return err
 }
 func (i *Subscriptions) dbEvent() error {
 	var err error
-	var stmntStr = cons.SQL_DEFAULT_SUBSCRIPTIONS
+	var stmntStr = tukcnst.SQL_DEFAULT_SUBSCRIPTIONS
 	var rows *sql.Rows
 	var vals []interface{}
 	ctx, cancelCtx := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancelCtx()
 	if len(i.Subscriptions) > 0 {
-		if stmntStr, vals, err = createPreparedStmnt(i.Action, cons.SUBSCRIPTIONS, reflectStruct(reflect.ValueOf(i.Subscriptions[0]))); err != nil {
+		if stmntStr, vals, err = createPreparedStmnt(i.Action, tukcnst.SUBSCRIPTIONS, reflectStruct(reflect.ValueOf(i.Subscriptions[0]))); err != nil {
 			log.Println(err.Error())
 			return err
 		}
@@ -216,7 +193,7 @@ func (i *Subscriptions) dbEvent() error {
 	}
 	defer sqlStmnt.Close()
 
-	if i.Action == cons.SELECT {
+	if i.Action == tukcnst.SELECT {
 		rows, err = setRows(ctx, sqlStmnt, vals)
 		if err != nil {
 			log.Println(err.Error())
@@ -244,13 +221,13 @@ func (i *Subscriptions) dbEvent() error {
 }
 func (i *Events) dbEvent() error {
 	var err error
-	var stmntStr = cons.SQL_DEFAULT_EVENTS
+	var stmntStr = tukcnst.SQL_DEFAULT_EVENTS
 	var rows *sql.Rows
 	var vals []interface{}
 	ctx, cancelCtx := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancelCtx()
 	if len(i.Events) > 0 {
-		if stmntStr, vals, err = createPreparedStmnt(i.Action, cons.EVENTS, reflectStruct(reflect.ValueOf(i.Events[0]))); err != nil {
+		if stmntStr, vals, err = createPreparedStmnt(i.Action, tukcnst.EVENTS, reflectStruct(reflect.ValueOf(i.Events[0]))); err != nil {
 			log.Println(err.Error())
 			return err
 		}
@@ -262,7 +239,7 @@ func (i *Events) dbEvent() error {
 	}
 	defer sqlStmnt.Close()
 
-	if i.Action == cons.SELECT {
+	if i.Action == tukcnst.SELECT {
 		rows, err = setRows(ctx, sqlStmnt, vals)
 		if err != nil {
 			log.Println(err.Error())
@@ -290,13 +267,13 @@ func (i *Events) dbEvent() error {
 }
 func (i *Workflows) dbEvent() error {
 	var err error
-	var stmntStr = cons.SQL_DEFAULT_WORKFLOWS
+	var stmntStr = tukcnst.SQL_DEFAULT_WORKFLOWS
 	var rows *sql.Rows
 	var vals []interface{}
 	ctx, cancelCtx := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancelCtx()
 	if len(i.Workflows) > 0 {
-		if stmntStr, vals, err = createPreparedStmnt(i.Action, cons.WORKFLOWS, reflectStruct(reflect.ValueOf(i.Workflows[0]))); err != nil {
+		if stmntStr, vals, err = createPreparedStmnt(i.Action, tukcnst.WORKFLOWS, reflectStruct(reflect.ValueOf(i.Workflows[0]))); err != nil {
 			log.Println(err.Error())
 			return err
 		}
@@ -308,7 +285,7 @@ func (i *Workflows) dbEvent() error {
 	}
 	defer sqlStmnt.Close()
 
-	if i.Action == cons.SELECT {
+	if i.Action == tukcnst.SELECT {
 		rows, err = setRows(ctx, sqlStmnt, vals)
 		if err != nil {
 			log.Println(err.Error())
@@ -335,13 +312,13 @@ func (i *Workflows) dbEvent() error {
 }
 func (i *XDWS) dbEvent() error {
 	var err error
-	var stmntStr = cons.SQL_DEFAULT_XDWS
+	var stmntStr = tukcnst.SQL_DEFAULT_XDWS
 	var rows *sql.Rows
 	var vals []interface{}
 	ctx, cancelCtx := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancelCtx()
 	if len(i.XDW) > 0 {
-		if stmntStr, vals, err = createPreparedStmnt(i.Action, cons.XDWS, reflectStruct(reflect.ValueOf(i.XDW[0]))); err != nil {
+		if stmntStr, vals, err = createPreparedStmnt(i.Action, tukcnst.XDWS, reflectStruct(reflect.ValueOf(i.XDW[0]))); err != nil {
 			log.Println(err.Error())
 			return err
 		}
@@ -353,7 +330,7 @@ func (i *XDWS) dbEvent() error {
 	}
 	defer sqlStmnt.Close()
 
-	if i.Action == cons.SELECT {
+	if i.Action == tukcnst.SELECT {
 		rows, err = setRows(ctx, sqlStmnt, vals)
 		if err != nil {
 			log.Println(err.Error())
@@ -401,7 +378,7 @@ func createPreparedStmnt(action string, table string, params map[string]interfac
 	stmntStr := "SELECT * FROM " + table
 	if len(params) > 0 {
 		switch action {
-		case cons.SELECT:
+		case tukcnst.SELECT:
 			var paramStr string
 			stmntStr = stmntStr + " WHERE "
 			for param, val := range params {
@@ -410,7 +387,7 @@ func createPreparedStmnt(action string, table string, params map[string]interfac
 			}
 			paramStr = strings.TrimSuffix(paramStr, " AND ")
 			stmntStr = stmntStr + paramStr
-		case cons.INSERT:
+		case tukcnst.INSERT:
 			var paramStr string
 			var qStr string
 			stmntStr = "INSERT INTO " + table + " ("
@@ -422,22 +399,22 @@ func createPreparedStmnt(action string, table string, params map[string]interfac
 			paramStr = strings.TrimSuffix(paramStr, ", ") + ") VALUES ("
 			qStr = strings.TrimSuffix(qStr, ", ")
 			stmntStr = stmntStr + paramStr + qStr + ")"
-		case cons.UPDATE:
+		case tukcnst.UPDATE:
 			switch table {
-			case cons.WORKFLOWS:
+			case tukcnst.WORKFLOWS:
 				stmntStr = "UPDATE workflows SET version=?, xdw_doc=? WHERE xdw_key=? AND version=?"
 				vals = append(vals, params["version"].(int)+1)
 				vals = append(vals, params["xdw_doc"])
 				vals = append(vals, params["xdw_key"])
 				vals = append(vals, params["version"])
-			case cons.EVENTS:
+			case tukcnst.EVENTS:
 				stmntStr = "UPDATE events SET version=? WHERE pathway=? AND nhsid=? AND version=?"
 				vals = append(vals, params["version"].(int)+1)
 				vals = append(vals, params["pathway"])
 				vals = append(vals, params["nhsid"])
 				vals = append(vals, params["version"])
 			}
-		case cons.DELETE:
+		case tukcnst.DELETE:
 			stmntStr = "DELETE FROM " + table + " WHERE "
 			var paramStr string
 			for param, val := range params {
@@ -481,7 +458,7 @@ func setLastID(ctx context.Context, sqlStmnt *sql.Stmt, vals []interface{}) (int
 
 func (i *Subscriptions) awsAPI_dbEvent() error {
 	body, _ := json.Marshal(i)
-	awsreq := aws_APIRequest(i.Action, cons.SUBSCRIPTIONS, body)
+	awsreq := aws_APIRequest(i.Action, tukcnst.SUBSCRIPTIONS, body)
 	if err := tukhttp.NewRequest(&awsreq); err != nil {
 		return err
 	}
@@ -489,7 +466,7 @@ func (i *Subscriptions) awsAPI_dbEvent() error {
 }
 func (i *Events) awsAPI_dbEvent() error {
 	body, _ := json.Marshal(i)
-	awsreq := aws_APIRequest(i.Action, cons.EVENTS, body)
+	awsreq := aws_APIRequest(i.Action, tukcnst.EVENTS, body)
 	if err := tukhttp.NewRequest(&awsreq); err != nil {
 		return err
 	}
@@ -497,7 +474,7 @@ func (i *Events) awsAPI_dbEvent() error {
 }
 func (i *Workflows) awsAPI_dbEvent() error {
 	body, _ := json.Marshal(i)
-	awsreq := aws_APIRequest(i.Action, cons.WORKFLOWS, body)
+	awsreq := aws_APIRequest(i.Action, tukcnst.WORKFLOWS, body)
 	if err := tukhttp.NewRequest(&awsreq); err != nil {
 		return err
 	}
@@ -505,7 +482,7 @@ func (i *Workflows) awsAPI_dbEvent() error {
 }
 func (i *XDWS) awsAPI_dbEvent() error {
 	body, _ := json.Marshal(i)
-	awsreq := aws_APIRequest(i.Action, cons.XDWS, body)
+	awsreq := aws_APIRequest(i.Action, tukcnst.XDWS, body)
 	if err := tukhttp.NewRequest(&awsreq); err != nil {
 		return err
 	}
