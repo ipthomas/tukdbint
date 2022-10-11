@@ -104,6 +104,33 @@ type XDW struct {
 	IsXDSMeta bool   `json:"isxdsmeta"`
 	XDW       string `json:"xdw"`
 }
+type IdMaps struct {
+	Action       string
+	LastInsertId int64
+	Where        string
+	Value        string
+	Cnt          int
+	LidMap       []IdMap
+}
+type IdMap struct {
+	Id  int    `json:"id"`
+	Lid string `json:"lid"`
+	Mid string `json:"mid"`
+}
+type EventAcks struct {
+	Action       string
+	LastInsertId int64
+	Where        string
+	Value        string
+	Cnt          int
+	EventAck     []EventAck
+}
+type EventAck struct {
+	Id           int    `json:"id"`
+	CreationTime string `json:"creationtime"`
+	SubRef       string `json:"subref"`
+	EventID      int    `json:"eventid"`
+}
 type TUK_DB_Interface interface {
 	newEvent() error
 }
@@ -362,6 +389,102 @@ func (i *XDWS) newEvent() error {
 	}
 	return err
 }
+func (i *IdMaps) newEvent() error {
+	if DB_URL != "" {
+		return i.newAWSEvent()
+	}
+	var err error
+	var stmntStr = tukcnst.SQL_DEFAULT_IDMAPS
+	var rows *sql.Rows
+	var vals []interface{}
+	ctx, cancelCtx := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancelCtx()
+	if len(i.LidMap) > 0 {
+		if stmntStr, vals, err = createPreparedStmnt(i.Action, tukcnst.ID_MAPS, reflectStruct(reflect.ValueOf(i.LidMap[0]))); err != nil {
+			log.Println(err.Error())
+			return err
+		}
+	}
+	sqlStmnt, err := DBConn.PrepareContext(ctx, stmntStr)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	defer sqlStmnt.Close()
+
+	if i.Action == tukcnst.SELECT {
+		rows, err = setRows(ctx, sqlStmnt, vals)
+		if err != nil {
+			log.Println(err.Error())
+			return err
+		}
+		for rows.Next() {
+			idmap := IdMap{}
+			if err := rows.Scan(&idmap.Id, &idmap.Lid, &idmap.Mid); err != nil {
+				switch {
+				case err == sql.ErrNoRows:
+					return nil
+				default:
+					log.Println(err.Error())
+					return err
+				}
+			}
+			i.LidMap = append(i.LidMap, idmap)
+			i.Cnt = i.Cnt + 1
+		}
+	} else {
+		i.LastInsertId, err = setLastID(ctx, sqlStmnt, vals)
+	}
+	return err
+}
+func (i *EventAcks) newEvent() error {
+	if DB_URL != "" {
+		return i.newAWSEvent()
+	}
+	var err error
+	var stmntStr = tukcnst.SQL_DEFAULT_EVENT_ACKS
+	var rows *sql.Rows
+	var vals []interface{}
+	ctx, cancelCtx := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancelCtx()
+	if len(i.EventAck) > 0 {
+		if stmntStr, vals, err = createPreparedStmnt(i.Action, tukcnst.EVENT_ACKS, reflectStruct(reflect.ValueOf(i.EventAck[0]))); err != nil {
+			log.Println(err.Error())
+			return err
+		}
+	}
+	sqlStmnt, err := DBConn.PrepareContext(ctx, stmntStr)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	defer sqlStmnt.Close()
+
+	if i.Action == tukcnst.SELECT {
+		rows, err = setRows(ctx, sqlStmnt, vals)
+		if err != nil {
+			log.Println(err.Error())
+			return err
+		}
+		for rows.Next() {
+			eventack := EventAck{}
+			if err := rows.Scan(&eventack.Id, &eventack.CreationTime, &eventack.SubRef, &eventack.EventID); err != nil {
+				switch {
+				case err == sql.ErrNoRows:
+					return nil
+				default:
+					log.Println(err.Error())
+					return err
+				}
+			}
+			i.EventAck = append(i.EventAck, eventack)
+			i.Cnt = i.Cnt + 1
+		}
+	} else {
+		i.LastInsertId, err = setLastID(ctx, sqlStmnt, vals)
+	}
+	return err
+}
 func reflectStruct(i reflect.Value) map[string]interface{} {
 	params := make(map[string]interface{})
 	structType := i.Type()
@@ -490,6 +613,14 @@ func (i *Workflows) newAWSEvent() error {
 func (i *XDWS) newAWSEvent() error {
 	body, _ := json.Marshal(i)
 	awsreq := aws_APIRequest(i.Action, tukcnst.XDWS, body)
+	if err := tukhttp.NewRequest(&awsreq); err != nil {
+		return err
+	}
+	return json.Unmarshal(awsreq.Response, &i)
+}
+func (i *IdMaps) newAWSEvent() error {
+	body, _ := json.Marshal(i)
+	awsreq := aws_APIRequest(i.Action, tukcnst.ID_MAPS, body)
 	if err := tukhttp.NewRequest(&awsreq); err != nil {
 		return err
 	}
