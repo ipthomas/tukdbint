@@ -529,20 +529,23 @@ func createPreparedStmnt(action string, table string, params map[string]interfac
 			paramStr = strings.TrimSuffix(paramStr, ", ") + ") VALUES ("
 			qStr = strings.TrimSuffix(qStr, ", ")
 			stmntStr = stmntStr + paramStr + qStr + ")"
+		case tukcnst.DEPRECATE:
+			switch table {
+			case tukcnst.WORKFLOWS:
+				stmntStr = "UPDATE workflows SET version = version + 1 WHERE xdw_key=?"
+				vals = append(vals, params["xdw_key"])
+			case tukcnst.EVENTS:
+				stmntStr = "UPDATE events SET version = version + 1 WHERE pathway=? AND nhsid=?"
+				vals = append(vals, params["pathway"])
+				vals = append(vals, params["nhsid"])
+			}
 		case tukcnst.UPDATE:
 			switch table {
 			case tukcnst.WORKFLOWS:
-				stmntStr = "UPDATE workflows SET version=?, xdw_doc=? WHERE xdw_key=? AND version=?"
-				vals = append(vals, params["version"].(int)+1)
+				stmntStr = "UPDATE workflows SET xdw_doc = ?, published = ? WHERE xdw_key = ? AND version = 0"
 				vals = append(vals, params["xdw_doc"])
+				vals = append(vals, params["published"])
 				vals = append(vals, params["xdw_key"])
-				vals = append(vals, params["version"])
-			case tukcnst.EVENTS:
-				stmntStr = "UPDATE events SET version=? WHERE pathway=? AND nhsid=? AND version=?"
-				vals = append(vals, params["version"].(int)+1)
-				vals = append(vals, params["pathway"])
-				vals = append(vals, params["nhsid"])
-				vals = append(vals, params["version"])
 			}
 		case tukcnst.DELETE:
 			stmntStr = "DELETE FROM " + table + " WHERE "
@@ -621,6 +624,14 @@ func (i *XDWS) newAWSEvent() error {
 func (i *IdMaps) newAWSEvent() error {
 	body, _ := json.Marshal(i)
 	awsreq := aws_APIRequest(i.Action, tukcnst.ID_MAPS, body)
+	if err := tukhttp.NewRequest(&awsreq); err != nil {
+		return err
+	}
+	return json.Unmarshal(awsreq.Response, &i)
+}
+func (i *EventAcks) newAWSEvent() error {
+	body, _ := json.Marshal(i)
+	awsreq := aws_APIRequest(i.Action, tukcnst.EVENT_ACKS, body)
 	if err := tukhttp.NewRequest(&awsreq); err != nil {
 		return err
 	}
