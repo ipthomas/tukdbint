@@ -639,7 +639,7 @@ func GetXdwConfigFiles(basepath string) (map[string][]byte, error) {
 	var err error
 	var f *os.File
 	var fileInfo []fs.DirEntry
-	f, err = os.Open(basepath + "/xdwconfig/")
+	f, err = os.Open(basepath + "xdwconfig/")
 	if err != nil {
 		log.Println(err)
 		return xdwFiles, err
@@ -648,7 +648,7 @@ func GetXdwConfigFiles(basepath string) (map[string][]byte, error) {
 	defer f.Close()
 	for _, file := range fileInfo {
 		if strings.HasSuffix(file.Name(), ".json") && strings.Contains(file.Name(), "_xdwdef") {
-			xdwfile, err := os.ReadFile(basepath + "/xdwconfig/" + file.Name())
+			xdwfile, err := os.ReadFile(basepath + "xdwconfig/" + file.Name())
 			if err != nil {
 				log.Println(err.Error())
 				return xdwFiles, err
@@ -665,7 +665,7 @@ func GetHTMLWidgetFiles(basepath string) ([]string, error) {
 	var err error
 	var f *os.File
 	var fileInfo []fs.DirEntry
-	f, err = os.Open(basepath + "/templates/html/")
+	f, err = os.Open(basepath + "templates/html/")
 	if err != nil {
 		log.Println(err)
 		return htmlWidgets, err
@@ -677,7 +677,7 @@ func GetHTMLWidgetFiles(basepath string) ([]string, error) {
 	defer f.Close()
 	for _, file := range fileInfo {
 		if strings.HasSuffix(file.Name(), ".json") && strings.Contains(file.Name(), "_xdwdef") {
-			tmplt, err := os.ReadFile(basepath + "/templates/html/" + file.Name())
+			tmplt, err := os.ReadFile(basepath + "templates/html/" + file.Name())
 			if err != nil {
 				log.Println(err.Error())
 				return htmlWidgets, err
