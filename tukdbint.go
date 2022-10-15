@@ -406,7 +406,7 @@ func (i *Templates) newEvent() error {
 		return i.newAWSEvent()
 	}
 	var err error
-	var stmntStr = tukcnst.SQL_DEFAULT_XDWS
+	var stmntStr = tukcnst.SQL_DEFAULT_TEMPLATES
 	var rows *sql.Rows
 	var vals []interface{}
 	ctx, cancelCtx := context.WithTimeout(context.Background(), 2*time.Second)
