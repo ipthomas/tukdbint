@@ -59,7 +59,7 @@ type Subscriptions struct {
 	Subscriptions []Subscription `json:"subscriptions"`
 }
 type Event struct {
-	EventId            int64  `json:"eventid"`
+	Id                 int64  `json:"id"`
 	Creationtime       string `json:"creationtime"`
 	DocName            string `json:"docname"`
 	ClassCode          string `json:"classcode"`
