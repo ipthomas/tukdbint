@@ -288,7 +288,7 @@ func (i *Events) newEvent() error {
 
 		for rows.Next() {
 			ev := Event{}
-			if err := rows.Scan(&ev.EventId, &ev.Creationtime, &ev.DocName, &ev.ClassCode, &ev.ConfCode, &ev.FormatCode, &ev.FacilityCode, &ev.PracticeCode, &ev.Expression, &ev.Authors, &ev.XdsPid, &ev.XdsDocEntryUid, &ev.RepositoryUniqueId, &ev.NhsId, &ev.User, &ev.Org, &ev.Role, &ev.Topic, &ev.Pathway, &ev.Notes, &ev.Version); err != nil {
+			if err := rows.Scan(&ev.Id, &ev.Creationtime, &ev.DocName, &ev.ClassCode, &ev.ConfCode, &ev.FormatCode, &ev.FacilityCode, &ev.PracticeCode, &ev.Expression, &ev.Authors, &ev.XdsPid, &ev.XdsDocEntryUid, &ev.RepositoryUniqueId, &ev.NhsId, &ev.User, &ev.Org, &ev.Role, &ev.Topic, &ev.Pathway, &ev.Notes, &ev.Version); err != nil {
 				switch {
 				case err == sql.ErrNoRows:
 					return nil
