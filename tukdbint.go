@@ -10,10 +10,9 @@ import (
 	"strings"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/ipthomas/tukcnst"
 	"github.com/ipthomas/tukhttp"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
@@ -556,11 +555,11 @@ func reflectStruct(i reflect.Value) map[string]interface{} {
 			}
 		}
 		if structType.Field(f).Name != "Id" && i.Field(f).Interface() != "" {
-			log.Printf("Reflecting Field %s Value %v", structType.Field(f).Name, i.Field(f).Interface())
+			//log.Printf("Reflecting Field %s Value %v", structType.Field(f).Name, i.Field(f).Interface())
 			params[strings.ToLower(structType.Field(f).Name)] = i.Field(f).Interface()
 		}
 	}
-	log.Printf("Obtained %v Key Values - %s", len(params), params)
+	//log.Printf("Obtained %v Key Values - %s", len(params), params)
 	return params
 }
 func createPreparedStmnt(action string, table string, params map[string]interface{}) (string, []interface{}, error) {
