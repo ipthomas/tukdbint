@@ -553,13 +553,19 @@ func reflectStruct(i reflect.Value) map[string]interface{} {
 			if tid > 0 {
 				params[strings.ToLower(structType.Field(f).Name)] = tid
 			}
-		}
-		if structType.Field(f).Name != "Id" && i.Field(f).Interface() != "" {
-			//log.Printf("Reflecting Field %s Value %v", structType.Field(f).Name, i.Field(f).Interface())
-			params[strings.ToLower(structType.Field(f).Name)] = i.Field(f).Interface()
+		} else {
+			if structType.Field(f).Name == "Version" {
+				tver := i.Field(f).Interface().(int)
+				if tver != -1 {
+					params[strings.ToLower(structType.Field(f).Name)] = tver
+				}
+			} else {
+				if i.Field(f).Interface() != "" {
+					params[strings.ToLower(structType.Field(f).Name)] = i.Field(f).Interface()
+				}
+			}
 		}
 	}
-	//log.Printf("Obtained %v Key Values - %s", len(params), params)
 	return params
 }
 func createPreparedStmnt(action string, table string, params map[string]interface{}) (string, []interface{}, error) {
