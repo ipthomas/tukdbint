@@ -38,13 +38,13 @@ type Templates struct {
 	Templates    []Template `json:"templates"`
 }
 type Template struct {
-	Id       int    `json:"id"`
+	Id       int64  `json:"id"`
 	Name     string `json:"name"`
 	IsXML    bool   `json:"isxml"`
 	Template string `json:"template"`
 }
 type Subscription struct {
-	Id         int    `json:"id"`
+	Id         int64  `json:"id"`
 	Created    string `json:"created"`
 	BrokerRef  string `json:"brokerref"`
 	Pathway    string `json:"pathway"`
@@ -58,7 +58,7 @@ type Subscriptions struct {
 	Subscriptions []Subscription `json:"subscriptions"`
 }
 type Event struct {
-	Id                 int    `json:"id"`
+	Id                 int64  `json:"id"`
 	Creationtime       string `json:"creationtime"`
 	DocName            string `json:"docname"`
 	ClassCode          string `json:"classcode"`
@@ -78,7 +78,7 @@ type Event struct {
 	Topic              string `json:"topic"`
 	Pathway            string `json:"pathway"`
 	Notes              string `json:"notes"`
-	Version            string `json:"ver"`
+	Version            int    `json:"ver"`
 	BrokerRef          string `json:"brokerref"`
 }
 type Events struct {
@@ -88,7 +88,7 @@ type Events struct {
 	Events       []Event `json:"events"`
 }
 type Workflow struct {
-	Id        int    `json:"id"`
+	Id        int64  `json:"id"`
 	Created   string `json:"created"`
 	XDW_Key   string `json:"xdw_key"`
 	XDW_UID   string `json:"xdw_uid"`
@@ -110,7 +110,7 @@ type XDWS struct {
 	XDW          []XDW  `json:"xdws"`
 }
 type XDW struct {
-	Id        int    `json:"id"`
+	Id        int64  `json:"id"`
 	Name      string `json:"name"`
 	IsXDSMeta bool   `json:"isxdsmeta"`
 	XDW       string `json:"xdw"`
@@ -124,7 +124,7 @@ type IdMaps struct {
 	LidMap       []IdMap
 }
 type IdMap struct {
-	Id  int    `json:"id"`
+	Id  int64  `json:"id"`
 	Lid string `json:"lid"`
 	Mid string `json:"mid"`
 }
@@ -137,10 +137,10 @@ type EventAcks struct {
 	EventAck     []EventAck
 }
 type EventAck struct {
-	Id           int    `json:"id"`
+	Id           int64  `json:"id"`
 	CreationTime string `json:"creationtime"`
 	SubRef       string `json:"subref"`
-	EventID      int    `json:"eventid"`
+	EventID      int64  `json:"eventid"`
 }
 type TUK_DB_Interface interface {
 	newEvent() error
@@ -549,7 +549,7 @@ func reflectStruct(i reflect.Value) map[string]interface{} {
 	structType := i.Type()
 	for f := 0; f < i.NumField(); f++ {
 		if structType.Field(f).Name == "Id" {
-			tid := i.Field(f).Interface().(int)
+			tid := i.Field(f).Interface().(int64)
 			if tid > 0 {
 				params[strings.ToLower(structType.Field(f).Name)] = tid
 			}
