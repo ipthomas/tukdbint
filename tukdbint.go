@@ -989,7 +989,7 @@ func setLastID(ctx context.Context, sqlStmnt *sql.Stmt, vals []interface{}) (int
 		}
 		id, err := sqlrslt.LastInsertId()
 		if err != nil {
-			l(err.Error().false)
+			l(err.Error(), false)
 			return 0, err
 		} else {
 			return id, nil
