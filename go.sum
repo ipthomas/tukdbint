@@ -6,5 +6,7 @@ github.com/ipthomas/tukcnst v1.3.3 h1:DCjCAAlCvAX0sWHv/SBPDuuvIV9YS7wnJrBkH4pt3z
 github.com/ipthomas/tukcnst v1.3.3/go.mod h1:ciOdJbw8hryjilsWjN0vhtF3ZbSfEKUd7wfzU0IZ2X8=
 github.com/ipthomas/tukhttp v1.3.3 h1:E2cK4gp+6JWAo7V6g5Kb/cWoyD/3uKQcMlMaGQFQHv0=
 github.com/ipthomas/tukhttp v1.3.3/go.mod h1:6fTxQpAGiCmX0Ldrst2UocjrNt2y6clsywJLp7kII/4=
+github.com/ipthomas/tukhttp v1.3.4 h1:PJJT6yiDQYNh8Vx6B86xTeYDNdv82MF48Z7ZyUlh1z4=
+github.com/ipthomas/tukhttp v1.3.4/go.mod h1:6fTxQpAGiCmX0Ldrst2UocjrNt2y6clsywJLp7kII/4=
 github.com/ipthomas/tukutil v1.3.3 h1:g/hteLypDvPGsB6VoBwe1Vs+H7dPbonNRwnJtHTLeYc=
 github.com/ipthomas/tukutil v1.3.3/go.mod h1:cgLt0kO9rA3cobp265FHdAYhDUAeeAE1VaJK2KMy28c=
