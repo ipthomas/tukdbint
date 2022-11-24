@@ -178,7 +178,10 @@ func (e EventsList) Swap(i, j int) {
 	e[i], e[j] = e[j], e[i]
 }
 
-func (i *TukDBConnection) InitialiseDatabase(schemeFile string) error {
+func (i *TukDBConnection) InitialiseDatabase(mysqlFile string) error {
+	if DBConn != nil {
+		DBConn.Close()
+	}
 	var err error
 	i.setDBCredentials()
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/",
@@ -186,29 +189,22 @@ func (i *TukDBConnection) InitialiseDatabase(schemeFile string) error {
 		i.DBPassword,
 		i.DBHost+i.DBPort)
 	log.Println("Opening DB Connection to mysql instance via DSN - " + dsn)
-	if DBConn, err = sql.Open(tukcnst.MYSQL, dsn); err != nil {
+	DBConn, err = sql.Open(tukcnst.MYSQL, dsn)
+	if err != nil {
+		log.Printf("Error %s when Opening DB Connection\n", err)
 		return err
 	}
-	defer DBConn.Close()
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelfunc()
-	res, err := DBConn.ExecContext(ctx, "CREATE DATABASE IF NOT EXISTS "+i.DBName)
-	if err != nil {
-		log.Printf("Error %s when creating DB\n", err)
-		return err
-	}
-	no, err := res.RowsAffected()
-	if err != nil {
-		log.Printf("Error %s when fetching rows", err)
-		return err
-	}
-	log.Printf("rows affected %d\n", no)
-	return i.initDBTables(schemeFile)
+	_, err = DBConn.ExecContext(ctx, "CREATE DATABASE IF NOT EXISTS "+i.DBName)
+	DBConn.Close()
+
+	return i.InitialiseDBTables(mysqlFile)
 }
-func (i *TukDBConnection) initDBTables(scriptFile string) error {
+func (i *TukDBConnection) InitialiseDBTables(mysqlFile string) error {
 	cmd := exec.Command("/usr/local/mysql/bin/mysql", "-h"+i.DBHost, "-P"+i.DBPort,
 		"-u"+i.DBUser, "-p"+i.DBPassword, "-D"+i.DBName)
-	dump, dump_err := os.Open(scriptFile)
+	dump, dump_err := os.Open(mysqlFile)
 	if dump_err != nil {
 		return dump_err
 	}
