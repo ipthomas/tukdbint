@@ -253,7 +253,7 @@ func (i *TukDBConnection) newEvent() error {
 			i.DBName,
 			i.DBTimeout,
 			i.DBReadTimeout)
-		l("No Database API URL provided. Opening DB Connection to mysql instance via DSN - "+dsn, true)
+		l("No Database API URL provided. Opening DB Connection to mysql instance via DSN - "+dsn, false)
 		DBConn, err = sql.Open(tukcnst.MYSQL, dsn)
 	}
 
@@ -815,15 +815,6 @@ func (i *ServiceStates) newEvent() error {
 	}
 	return err
 }
-func HasEventAck(eventid int64) bool {
-	evacks := EventAcks{Action: tukcnst.SELECT}
-	evack := EventAck{EventID: eventid}
-	evacks.EventAck = append(evacks.EventAck, evack)
-	if err := evacks.newEvent(); err != nil {
-		l(err.Error(), false)
-	}
-	return evacks.Cnt > 0
-}
 func GetTaskNotes(pwy string, nhsid string, taskid int, ver int) string {
 	notes := ""
 	evs := Events{Action: tukcnst.SELECT}
@@ -839,54 +830,6 @@ func GetTaskNotes(pwy string, nhsid string, taskid int, ver int) string {
 		l(fmt.Sprintf("Found TaskId %v Notes %s", taskid, notes), true)
 	}
 	return notes
-}
-func (i *EventAcks) newEvent() error {
-	if DB_URL != "" {
-		return i.newAWSEvent()
-	}
-	var err error
-	var stmntStr = tukcnst.SQL_DEFAULT_EVENT_ACKS
-	var rows *sql.Rows
-	var vals []interface{}
-	ctx, cancelCtx := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancelCtx()
-	if len(i.EventAck) > 0 {
-		if stmntStr, vals, err = createPreparedStmnt(i.Action, tukcnst.EVENT_ACKS, reflectStruct(reflect.ValueOf(i.EventAck[0]))); err != nil {
-			l(err.Error(), false)
-			return err
-		}
-	}
-	sqlStmnt, err := DBConn.PrepareContext(ctx, stmntStr)
-	if err != nil {
-		l(err.Error(), false)
-		return err
-	}
-	defer sqlStmnt.Close()
-
-	if i.Action == tukcnst.SELECT {
-		rows, err = setRows(ctx, sqlStmnt, vals)
-		if err != nil {
-			l(err.Error(), false)
-			return err
-		}
-		for rows.Next() {
-			eventack := EventAck{}
-			if err := rows.Scan(&eventack.Id, &eventack.CreationTime, &eventack.EventID, &eventack.User, &eventack.Org, &eventack.Role); err != nil {
-				switch {
-				case err == sql.ErrNoRows:
-					return nil
-				default:
-					l(err.Error(), false)
-					return err
-				}
-			}
-			i.EventAck = append(i.EventAck, eventack)
-			i.Cnt = i.Cnt + 1
-		}
-	} else {
-		i.LastInsertId, err = setLastID(ctx, sqlStmnt, vals)
-	}
-	return err
 }
 func reflectStruct(i reflect.Value) map[string]interface{} {
 	params := make(map[string]interface{})
