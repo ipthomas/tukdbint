@@ -1,5 +1,5 @@
-# github.com/go-sql-driver/mysql v1.6.0
-## explicit; go 1.10
+# github.com/go-sql-driver/mysql v1.7.0
+## explicit; go 1.13
 github.com/go-sql-driver/mysql
 # github.com/google/uuid v1.3.0
 ## explicit
@@ -10,6 +10,6 @@ github.com/ipthomas/tukcnst
 # github.com/ipthomas/tukhttp v1.3.5
 ## explicit; go 1.19
 github.com/ipthomas/tukhttp
-# github.com/ipthomas/tukutil v1.3.4
+# github.com/ipthomas/tukutil v1.3.5
 ## explicit; go 1.19
 github.com/ipthomas/tukutil
