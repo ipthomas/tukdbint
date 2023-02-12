@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/go-sql-driver/mysql v1.7.0
-	github.com/ipthomas/tukcnst v1.3.4
+	github.com/ipthomas/tukcnst v1.3.5
 	github.com/ipthomas/tukhttp v1.3.8
 )
 
