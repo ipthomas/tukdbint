@@ -837,7 +837,7 @@ func (i *Statics) newEvent() error {
 	ctx, cancelCtx := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancelCtx()
 	if len(i.Static) > 0 {
-		if stmntStr, vals, err = createPreparedStmnt(i.Action, tukcnst.SERVICE_STATES, reflectStruct(reflect.ValueOf(i.Static[0]))); err != nil {
+		if stmntStr, vals, err = createPreparedStmnt(i.Action, tukcnst.STATICS, reflectStruct(reflect.ValueOf(i.Static[0]))); err != nil {
 			log.Println(err.Error())
 			return err
 		}
