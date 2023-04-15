@@ -135,6 +135,33 @@ type Workflows struct {
 	Count        int        `json:"count"`
 	Workflows    []Workflow `json:"workflows"`
 }
+type WorkflowStates struct {
+	Action        string          `json:"action"`
+	LastInsertId  int64           `json:"lastinsertid"`
+	Count         int             `json:"count"`
+	Workflowstate []Workflowstate `json:"workflowstate"`
+}
+type Workflowstate struct {
+	Id             int64  `json:"id"`
+	WorkflowId     int64  `json:"workflowid"`
+	Pathway        string `json:"pathway"`
+	NHS            string `json:"nhsid"`
+	Version        int    `json:"version"`
+	Published      bool   `json:"published"`
+	Created        string `json:"created"`
+	CreatedBy      string `json:"createdby"`
+	Status         string `json:"status"`
+	CompleteBy     string `json:"completeby"`
+	LastUpdate     string `json:"lastupdate"`
+	Owner          string `json:"owner"`
+	Overdue        bool   `json:"overdue"`
+	Escalated      bool   `json:"escalated"`
+	TargetMet      bool   `json:"targetmet"`
+	InProgress     bool   `json:"inprogress"`
+	Duration       int    `json:"duration"`
+	PrettyDuration string `json:"prettyduration"`
+}
+
 type XDWS struct {
 	Action       string `json:"action"`
 	LastInsertId int64  `json:"lastinsertid"`
