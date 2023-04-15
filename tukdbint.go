@@ -517,6 +517,51 @@ func (i *Workflows) newEvent() error {
 	}
 	return err
 }
+func (i *WorkflowStates) newEvent() error {
+	var err error
+	var stmntStr = "SELECT * FROM workflowstate"
+	var rows *sql.Rows
+	var vals []interface{}
+	ctx, cancelCtx := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancelCtx()
+	if len(i.Workflowstate) > 0 {
+		if stmntStr, vals, err = createPreparedStmnt(i.Action, "workflowstate", reflectStruct(reflect.ValueOf(i.Workflowstate[0]))); err != nil {
+			log.Println(err.Error())
+			return err
+		}
+	}
+	sqlStmnt, err := DBConn.PrepareContext(ctx, stmntStr)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	defer sqlStmnt.Close()
+
+	if i.Action == tukcnst.SELECT {
+		rows, err = setRows(ctx, sqlStmnt, vals)
+		if err != nil {
+			log.Println(err.Error())
+			return err
+		}
+		for rows.Next() {
+			workflow := Workflowstate{}
+			if err := rows.Scan(&workflow.Id, &workflow.WorkflowId, &workflow.Pathway, &workflow.NHS, &workflow.Version, &workflow.Published, &workflow.Created, &workflow.Status, &workflow.CompleteBy, &workflow.LastUpdate, &workflow.Owner, &workflow.Overdue, &workflow.Escalated, &workflow.TargetMet, &workflow.InProgress, &workflow.Duration, &workflow.PrettyDuration); err != nil {
+				switch {
+				case err == sql.ErrNoRows:
+					return nil
+				default:
+					log.Println(err.Error())
+					return err
+				}
+			}
+			i.Workflowstate = append(i.Workflowstate, workflow)
+			i.Count = i.Count + 1
+		}
+	} else {
+		i.LastInsertId, err = setLastID(ctx, sqlStmnt, vals)
+	}
+	return err
+}
 func GetWorkflowDefinitionNames() map[string]string {
 	names := make(map[string]string)
 	xdws := XDWS{Action: tukcnst.SELECT}
@@ -921,13 +966,13 @@ func reflectStruct(i reflect.Value) map[string]interface{} {
 	params := make(map[string]interface{})
 	structType := i.Type()
 	for f := 0; f < i.NumField(); f++ {
-		if structType.Field(f).Name == "Id" || structType.Field(f).Name == "EventID" || structType.Field(f).Name == "LastInsertId" {
+		if structType.Field(f).Name == "Id" || structType.Field(f).Name == "EventID" || structType.Field(f).Name == "LastInsertId" || structType.Field(f).Name == "WorkflowId" {
 			tint64 := i.Field(f).Interface().(int64)
 			if tint64 > 0 {
 				params[strings.ToLower(structType.Field(f).Name)] = tint64
 			}
 		} else {
-			if structType.Field(f).Name == "Version" || structType.Field(f).Name == "TaskId" {
+			if structType.Field(f).Name == "Version" || structType.Field(f).Name == "TaskId" || structType.Field(f).Name == "Duration" {
 				tint := i.Field(f).Interface().(int)
 				if tint != -1 {
 					params[strings.ToLower(structType.Field(f).Name)] = tint
