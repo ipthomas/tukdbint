@@ -145,7 +145,7 @@ type Workflowstate struct {
 	Id             int64  `json:"id"`
 	WorkflowId     int64  `json:"workflowid"`
 	Pathway        string `json:"pathway"`
-	NHS            string `json:"nhsid"`
+	NHSId          string `json:"nhsid"`
 	Version        int    `json:"version"`
 	Published      bool   `json:"published"`
 	Created        string `json:"created"`
@@ -546,7 +546,7 @@ func (i *WorkflowStates) newEvent() error {
 		}
 		for rows.Next() {
 			workflow := Workflowstate{}
-			if err := rows.Scan(&workflow.Id, &workflow.WorkflowId, &workflow.Pathway, &workflow.NHS, &workflow.Version, &workflow.Published, &workflow.Created, &workflow.Status, &workflow.CompleteBy, &workflow.LastUpdate, &workflow.Owner, &workflow.Overdue, &workflow.Escalated, &workflow.TargetMet, &workflow.InProgress, &workflow.Duration, &workflow.PrettyDuration, &workflow.TimeRemaining); err != nil {
+			if err := rows.Scan(&workflow.Id, &workflow.WorkflowId, &workflow.Pathway, &workflow.NHSId, &workflow.Version, &workflow.Published, &workflow.Created, &workflow.Status, &workflow.CompleteBy, &workflow.LastUpdate, &workflow.Owner, &workflow.Overdue, &workflow.Escalated, &workflow.TargetMet, &workflow.InProgress, &workflow.Duration, &workflow.PrettyDuration, &workflow.TimeRemaining); err != nil {
 				switch {
 				case err == sql.ErrNoRows:
 					return nil
