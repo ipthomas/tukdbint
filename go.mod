@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/ipthomas/tukcnst v1.3.6
-	github.com/ipthomas/tukhttp v1.3.10
+	github.com/ipthomas/tukhttp v1.3.11
 )
 
 require (
