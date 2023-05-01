@@ -39,6 +39,7 @@ type SOAPRequest struct {
 }
 type AWS_APIRequest struct {
 	URL         string
+	Version     int
 	Act         string
 	Resource    string
 	ContentType string
@@ -194,15 +195,19 @@ func (i *AWS_APIRequest) newRequest() error {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(i.Timeout)*time.Second)
 		defer cancel()
 		i.logRequest(req.Header)
+		log.Printf("Sending HTTP Request - %s", req.URL)
 		if resp, err = client.Do(req.WithContext(ctx)); err == nil {
 			if resp.StatusCode == http.StatusOK {
 				i.Response, err = io.ReadAll(resp.Body)
+				defer resp.Body.Close()
+				i.StatusCode = resp.StatusCode
+				i.logResponse()
 			}
 		}
 	}
-	defer resp.Body.Close()
-	i.StatusCode = resp.StatusCode
-	i.logResponse()
+	if err != nil {
+		log.Println(err.Error())
+	}
 	return err
 }
 func (i *AWS_APIRequest) logRequest(headers http.Header) {
