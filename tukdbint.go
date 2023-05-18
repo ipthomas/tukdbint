@@ -76,6 +76,8 @@ type Subscription struct {
 	Pathway    string `json:"pathway"`
 	Topic      string `json:"topic"`
 	Expression string `json:"expression"`
+	Email      string `json:"email"`
+	NhsId      string `json:"nhsid"`
 }
 type Subscriptions struct {
 	Action        string         `json:"action"`
@@ -380,7 +382,7 @@ func (i *Subscriptions) newEvent() error {
 
 		for rows.Next() {
 			sub := Subscription{}
-			if err := rows.Scan(&sub.Id, &sub.Created, &sub.BrokerRef, &sub.Pathway, &sub.Topic, &sub.Expression); err != nil {
+			if err := rows.Scan(&sub.Id, &sub.Created, &sub.BrokerRef, &sub.Pathway, &sub.Topic, &sub.Expression, &sub.Email, &sub.NhsId); err != nil {
 				switch {
 				case err == sql.ErrNoRows:
 					return nil
