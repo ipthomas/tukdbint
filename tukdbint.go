@@ -44,7 +44,7 @@ type Statics struct {
 type Static struct {
 	Id      int64  `json:"id"`
 	Name    string `json:"name"`
-	Content string `json:"content"`
+	Content []byte `json:"content"`
 }
 type ServiceStates struct {
 	Action       string         `json:"action"`
