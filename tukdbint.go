@@ -993,16 +993,21 @@ func reflectStruct(i reflect.Value) map[string]interface{} {
 			tint64 := i.Field(f).Interface().(int64)
 			if tint64 > 0 {
 				params[strings.ToLower(structType.Field(f).Name)] = tint64
+				log.Printf("reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), tint64)
 			}
 		} else {
 			if strings.EqualFold(structType.Field(f).Name, "Version") || strings.EqualFold(structType.Field(f).Name, "TaskId") {
 				tint := i.Field(f).Interface().(int)
 				if tint != -1 {
 					params[strings.ToLower(structType.Field(f).Name)] = tint
+					log.Printf("reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), tint)
 				}
 			} else {
-				if i.Field(f).Interface() != nil && i.Field(f).Interface() != "" {
+				if i.Field(f).Interface() == nil || i.Field(f).Interface() == "" {
+					continue
+				} else {
 					params[strings.ToLower(structType.Field(f).Name)] = i.Field(f).Interface()
+					log.Printf("reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), i.Field(f).Interface())
 				}
 			}
 		}
