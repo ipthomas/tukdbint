@@ -1003,9 +1003,13 @@ func reflectStruct(i reflect.Value) map[string]interface{} {
 					log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), tint)
 				}
 			} else {
-				if i.Field(f).Interface() != nil && len(i.Field(f).Interface().([]byte)) > 0 {
-					params[strings.ToLower(structType.Field(f).Name)] = i.Field(f).Interface()
-					log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), i.Field(f).Interface())
+				if i.Field(f).Interface() != nil && i.Field(f).Interface() != "" {
+					if blobData, ok := i.Field(f).Interface().([]byte); ok {
+						params[strings.ToLower(structType.Field(f).Name)] = blobData
+					} else {
+						params[strings.ToLower(structType.Field(f).Name)] = i.Field(f).Interface()
+						log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), i.Field(f).Interface())
+					}
 				}
 			}
 		}
