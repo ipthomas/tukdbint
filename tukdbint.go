@@ -78,6 +78,9 @@ type Subscription struct {
 	Expression string `json:"expression"`
 	Email      string `json:"email"`
 	NhsId      string `json:"nhsid"`
+	User       string `json:"user"`
+	Org        string `json:"org"`
+	Role       string `json:"role"`
 }
 type Subscriptions struct {
 	Action        string         `json:"action"`
