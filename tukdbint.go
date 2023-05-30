@@ -591,7 +591,7 @@ func GetWorkflowDefinitionNames() map[string]string {
 	if err := xdws.newEvent(); err == nil {
 		for _, xdw := range xdws.XDW {
 			if xdw.Id > 0 {
-				names[xdw.Name] = ""
+				names[xdw.Name] = GetIDMapsMappedId(xdw.Name)
 			}
 		}
 	}
