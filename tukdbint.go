@@ -188,9 +188,10 @@ type IdMaps struct {
 	LidMap       []IdMap
 }
 type IdMap struct {
-	Id  int64  `json:"id"`
-	Lid string `json:"lid"`
-	Mid string `json:"mid"`
+	Id   int64  `json:"id"`
+	User string `json:"user"`
+	Lid  string `json:"lid"`
+	Mid  string `json:"mid"`
 }
 
 // sort interface for events
@@ -840,7 +841,7 @@ func (i *IdMaps) newEvent() error {
 		}
 		for rows.Next() {
 			idmap := IdMap{}
-			if err := rows.Scan(&idmap.Id, &idmap.Lid, &idmap.Mid); err != nil {
+			if err := rows.Scan(&idmap.Id, &idmap.Lid, &idmap.Mid, &idmap.User); err != nil {
 				switch {
 				case err == sql.ErrNoRows:
 					return nil
@@ -1069,7 +1070,8 @@ func createPreparedStmnt(action string, table string, params map[string]interfac
 				vals = append(vals, params["nhsid"])
 				vals = append(vals, params["version"])
 			case tukcnst.ID_MAPS:
-				stmntStr = "UPDATE idmaps SET lid = ?, mid = ? WHERE id = ?"
+				stmntStr = "UPDATE idmaps SET lid = ?, mid = ? WHERE id = ? AND user = ?"
+				vals = append(vals, params["user"])
 				vals = append(vals, params["lid"])
 				vals = append(vals, params["mid"])
 				vals = append(vals, params["id"])
