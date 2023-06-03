@@ -234,7 +234,7 @@ func (e WorkflowsList) Swap(i, j int) {
 }
 
 var debugMode bool
-var cache = make(map[string]string)
+var usercache = make(map[string]map[string]string)
 
 func SetDebugMode(debug bool) {
 	debugMode = debug
@@ -592,12 +592,12 @@ func GetWorkflowDefinitionNames() map[string]string {
 	if err := xdws.newEvent(); err == nil {
 		for _, xdw := range xdws.XDW {
 			if xdw.Id > 0 {
-				names[xdw.Name] = GetIDMapsMappedId(xdw.Name)
+				names[xdw.Name] = GetIDMapsMappedId("", xdw.Name)
 			}
 		}
 	}
 	if debugMode {
-		log.Printf("Returning %v XDW Config files", len(names))
+		log.Printf("Returning %v XDW Definition Names", len(names))
 	}
 	return names
 }
@@ -618,7 +618,7 @@ func GetWorkflowXDSMetaNames() []string {
 	}
 	return xdwdefs
 }
-func GetWorkflowDefinitions(name string) (XDWS, error) {
+func GetWorkflowDefinitions() (XDWS, error) {
 	xdws := XDWS{Action: tukcnst.SELECT}
 	err := xdws.newEvent()
 	return xdws, err
@@ -776,37 +776,42 @@ func cachIDMaps() {
 	}
 	for _, v := range idmaps.LidMap {
 		if v.Id > 0 {
-			cache[v.Lid] = v.Mid
+			newmap := make(map[string]string)
+			newmap[v.Lid] = v.User
+			usercache[v.Mid] = newmap
 		}
 	}
-	log.Printf("Cached %v CodeMaps", len(cache))
+	log.Printf("Total User CodeMaps: %v", len(usercache))
 }
-func GetIDMaps() IdMaps {
-	idmaps := IdMaps{Action: tukcnst.SELECT}
-	if err := idmaps.newEvent(); err != nil {
-		log.Println(err.Error())
-	}
-	return idmaps
-}
-func GetIDMapsMappedId(localid string) string {
-	if len(cache) == 0 {
+func GetIDMapsMappedId(user string, localid string) string {
+	if len(usercache) == 0 {
 		cachIDMaps()
 	}
-	if mid, ok := cache[localid]; ok {
-		return mid
+	if user == "" {
+		user = "system"
+	}
+	for mid, cachedMaps := range usercache {
+		for lid, usermap := range cachedMaps {
+			if lid == localid && usermap == user {
+				return mid
+			}
+		}
 	}
 	return localid
 }
-func GetIDMapsLocalId(mid string) string {
-	idmaps := IdMaps{Action: tukcnst.SELECT}
-	idmap := IdMap{Mid: mid}
-	idmaps.LidMap = append(idmaps.LidMap, idmap)
-	if err := idmaps.newEvent(); err != nil {
-		log.Println(err.Error())
-		return mid
+func GetIDMapsLocalId(user string, mid string) string {
+	if len(usercache) == 0 {
+		cachIDMaps()
 	}
-	if idmaps.Cnt == 1 {
-		return idmaps.LidMap[1].Lid
+	if user == "" {
+		user = "system"
+	}
+	if mid, ok := usercache[mid]; ok {
+		for lid, usermap := range mid {
+			if usermap == user {
+				return lid
+			}
+		}
 	}
 	return mid
 }
