@@ -234,7 +234,7 @@ func (e WorkflowsList) Swap(i, j int) {
 }
 
 var debugMode bool
-var usercache = make(map[string]map[string]string)
+var idmapsCache = []IdMap{}
 
 func SetDebugMode(debug bool) {
 	debugMode = debug
@@ -584,7 +584,7 @@ func (i *WorkflowStates) newEvent() error {
 	}
 	return err
 }
-func GetWorkflowDefinitionNames() map[string]string {
+func GetWorkflowDefinitionNames(user string) map[string]string {
 	names := make(map[string]string)
 	xdws := XDWS{Action: tukcnst.SELECT}
 	xdw := XDW{IsXDSMeta: false}
@@ -592,7 +592,7 @@ func GetWorkflowDefinitionNames() map[string]string {
 	if err := xdws.newEvent(); err == nil {
 		for _, xdw := range xdws.XDW {
 			if xdw.Id > 0 {
-				names[xdw.Name] = GetIDMapsMappedId("", xdw.Name)
+				names[xdw.Name] = GetIDMapsMappedId(user, xdw.Name)
 			}
 		}
 	}
@@ -774,43 +774,33 @@ func cachIDMaps() {
 	if err := idmaps.newEvent(); err != nil {
 		log.Println(err.Error())
 	}
-	for _, v := range idmaps.LidMap {
-		if v.Id > 0 {
-			newmap := make(map[string]string)
-			newmap[v.Lid] = v.User
-			usercache[v.Mid] = newmap
-		}
-	}
-	log.Printf("Total User CodeMaps: %v", len(usercache))
+	idmapsCache = idmaps.LidMap
+	log.Printf("Total CodeMaps: %v", len(idmapsCache))
 }
 func GetIDMapsMappedId(user string, localid string) string {
-	if len(usercache) == 0 {
+	if len(idmapsCache) == 0 {
 		cachIDMaps()
 	}
 	if user == "" {
 		user = "system"
 	}
-	for mid, cachedMaps := range usercache {
-		for lid, usermap := range cachedMaps {
-			if lid == localid && usermap == user {
-				return mid
-			}
+	for _, idmap := range idmapsCache {
+		if idmap.Lid == localid && idmap.User == user {
+			return idmap.Mid
 		}
 	}
 	return localid
 }
 func GetIDMapsLocalId(user string, mid string) string {
-	if len(usercache) == 0 {
+	if len(idmapsCache) == 0 {
 		cachIDMaps()
 	}
 	if user == "" {
 		user = "system"
 	}
-	if mid, ok := usercache[mid]; ok {
-		for lid, usermap := range mid {
-			if usermap == user {
-				return lid
-			}
+	for _, idmap := range idmapsCache {
+		if idmap.Mid == mid && idmap.User == user {
+			return idmap.Lid
 		}
 	}
 	return mid
