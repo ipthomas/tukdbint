@@ -1065,11 +1065,17 @@ func createPreparedStmnt(action string, table string, params map[string]interfac
 				vals = append(vals, params["nhsid"])
 				vals = append(vals, params["version"])
 			case tukcnst.ID_MAPS:
-				stmntStr = "UPDATE idmaps SET lid = ?, mid = ?, user = ? WHERE id = ?"
-				vals = append(vals, params["lid"])
-				vals = append(vals, params["mid"])
-				vals = append(vals, params["user"])
+				stmntStr = "UPDATE idmaps SET "
+				var paramStr string
+				for param, val := range params {
+					if val != "" {
+						paramStr = paramStr + param + "= ?, "
+						vals = append(vals, val)
+					}
+				}
 				vals = append(vals, params["id"])
+				paramStr = strings.TrimSuffix(paramStr, ", ")
+				stmntStr = stmntStr + paramStr + " WHERE id = ?"
 			}
 		case tukcnst.DELETE:
 			stmntStr = "DELETE FROM " + table + " WHERE "
