@@ -1068,7 +1068,7 @@ func createPreparedStmnt(action string, table string, params map[string]interfac
 				stmntStr = "UPDATE idmaps SET "
 				var paramStr string
 				for param, val := range params {
-					if val != "" {
+					if val != "" && param != "id" {
 						paramStr = paramStr + param + "= ?, "
 						vals = append(vals, val)
 					}
