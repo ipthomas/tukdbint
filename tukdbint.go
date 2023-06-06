@@ -769,8 +769,10 @@ func (i *Templates) newEvent() error {
 	}
 	return err
 }
-func cachIDMaps() {
+func cachIDMaps(user string) {
 	idmaps := IdMaps{Action: tukcnst.SELECT}
+	idmap := IdMap{User: user}
+	idmaps.LidMap = append(idmaps.LidMap, idmap)
 	if err := idmaps.newEvent(); err != nil {
 		log.Println(err.Error())
 	}
@@ -779,7 +781,7 @@ func cachIDMaps() {
 }
 func GetIDMapsMappedId(user string, localid string) string {
 	if len(idmapsCache) == 0 {
-		cachIDMaps()
+		cachIDMaps(user)
 	}
 	if user == "" {
 		user = "system"
@@ -792,12 +794,13 @@ func GetIDMapsMappedId(user string, localid string) string {
 	return localid
 }
 func GetIDMapsLocalId(user string, mid string) string {
-	if len(idmapsCache) == 0 {
-		cachIDMaps()
-	}
 	if user == "" {
 		user = "system"
 	}
+	if len(idmapsCache) == 0 {
+		cachIDMaps(user)
+	}
+
 	for _, idmap := range idmapsCache {
 		if idmap.Mid == mid && idmap.User == user {
 			return idmap.Lid
