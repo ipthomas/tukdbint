@@ -12,13 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ipthomas/tukcnst"
-
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/ipthomas/tukcnst"
 )
 
 var (
-	DB_URL = ""
 	DBConn *sql.DB
 )
 
@@ -248,7 +246,7 @@ func (i *TukDBConnection) InitialiseDatabase(mysqlFile string) error {
 		i.DBPassword,
 		i.DBHost+i.DBPort)
 	log.Printf("Opening DB Connection to mysql instance via DSN - %s", dsn)
-	DBConn, err = sql.Open(tukcnst.MYSQL, dsn)
+	DBConn, err = sql.Open("mysql", dsn)
 	if err != nil {
 		log.Printf("Error %s when Opening DB Connection\n", err)
 		return err
@@ -292,25 +290,19 @@ func NewDBEvent(i TUK_DB_Interface) error {
 
 func (i *TukDBConnection) newEvent() error {
 	var err error
-	if i.DB_URL != "" {
-		log.Printf("Database API URL provided. Will connect to mysql instance via AWS API Gateway url %s", i.DB_URL)
-		DB_URL = i.DB_URL
-	} else {
-		i.setDBCredentials()
-		if i.DBName == "" {
-			i.DBName = "tuk"
-		}
-		dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true&timeout=%s&readTimeout=%s",
-			i.DBUser,
-			i.DBPassword,
-			i.DBHost+i.DBPort,
-			i.DBName,
-			i.DBTimeout,
-			i.DBReadTimeout)
-		log.Println("No Database API URL provided. Opening DB Connection to mysql instance via DSN")
-		DBConn, err = sql.Open(tukcnst.MYSQL, dsn)
+	i.setDBCredentials()
+	if i.DBName == "" {
+		i.DBName = "tuk"
 	}
-
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true&timeout=%s&readTimeout=%s",
+		i.DBUser,
+		i.DBPassword,
+		i.DBHost+i.DBPort,
+		i.DBName,
+		i.DBTimeout,
+		i.DBReadTimeout)
+	log.Println("No Database API URL provided. Opening DB Connection to mysql instance via DSN")
+	DBConn, err = sql.Open("mysql", dsn)
 	return err
 }
 
@@ -982,9 +974,14 @@ func reflectStruct(i reflect.Value) map[string]interface{} {
 					log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), tint)
 				}
 			} else {
-				if i.Field(f).Interface() != nil && len(i.Field(f).Interface().(string)) > 0 {
+				if strings.EqualFold(structType.Field(f).Name, "isxml") || strings.EqualFold(structType.Field(f).Name, "published") || strings.EqualFold(structType.Field(f).Name, "isxdsmeta") {
 					params[strings.ToLower(structType.Field(f).Name)] = i.Field(f).Interface()
 					log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), i.Field(f).Interface())
+				} else {
+					if i.Field(f).Interface() != nil && len(i.Field(f).Interface().(string)) > 0 {
+						params[strings.ToLower(structType.Field(f).Name)] = i.Field(f).Interface()
+						log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), i.Field(f).Interface())
+					}
 				}
 			}
 		}
