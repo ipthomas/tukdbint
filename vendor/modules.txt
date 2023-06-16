@@ -1,6 +1,6 @@
 # github.com/go-sql-driver/mysql v1.7.1
 ## explicit; go 1.13
 github.com/go-sql-driver/mysql
-# github.com/ipthomas/tukcnst v1.3.11
+# github.com/ipthomas/tukcnst v1.3.12
 ## explicit; go 1.19
 github.com/ipthomas/tukcnst
