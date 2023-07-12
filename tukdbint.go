@@ -14,11 +14,7 @@ import (
 	"github.com/ipthomas/tukcnst"
 )
 
-var (
-	DBConn *sql.DB
-)
-
-type TukDBConnection struct {
+type DBConnection struct {
 	DBUser        string
 	DBPassword    string
 	DBHost        string
@@ -31,30 +27,29 @@ type TukDBConnection struct {
 }
 type Statics struct {
 	Action       string   `json:"action"`
-	LastInsertId int64    `json:"lastinsertid"`
+	LastInsertId int      `json:"lastinsertid"`
 	Count        int      `json:"count"`
 	Static       []Static `json:"static"`
 }
 type Static struct {
-	Id      int64  `json:"id"`
+	Id      int    `json:"id"`
 	Name    string `json:"name"`
 	Content string `json:"content"`
 }
 type Templates struct {
 	Action       string     `json:"action"`
-	LastInsertId int64      `json:"lastinsertid"`
+	LastInsertId int        `json:"lastinsertid"`
 	Count        int        `json:"count"`
 	Templates    []Template `json:"templates"`
 }
 type Template struct {
-	Id       int64  `json:"id"`
+	Id       int    `json:"id"`
 	Name     string `json:"name"`
-	IsXML    bool   `json:"isxml"`
 	Template string `json:"template"`
 	User     string `json:"user"`
 }
 type Subscription struct {
-	Id         int64  `json:"id"`
+	Id         int    `json:"id"`
 	Created    string `json:"created"`
 	BrokerRef  string `json:"brokerref"`
 	Pathway    string `json:"pathway"`
@@ -68,12 +63,12 @@ type Subscription struct {
 }
 type Subscriptions struct {
 	Action        string         `json:"action"`
-	LastInsertId  int64          `json:"lastinsertid"`
+	LastInsertId  int            `json:"lastinsertid"`
 	Count         int            `json:"count"`
 	Subscriptions []Subscription `json:"subscriptions"`
 }
 type Event struct {
-	Id                 int64  `json:"id"`
+	Id                 int    `json:"id"`
 	Creationtime       string `json:"creationtime"`
 	EventType          string `json:"eventtype"`
 	DocName            string `json:"docname"`
@@ -101,12 +96,12 @@ type Event struct {
 }
 type Events struct {
 	Action       string  `json:"action"`
-	LastInsertId int64   `json:"lastinsertid"`
+	LastInsertId int     `json:"lastinsertid"`
 	Count        int     `json:"count"`
 	Events       []Event `json:"events"`
 }
 type Workflow struct {
-	Id        int64  `json:"id"`
+	Id        int    `json:"id"`
 	Created   string `json:"created"`
 	Pathway   string `json:"pathway"`
 	NHSId     string `json:"nhsid"`
@@ -120,19 +115,19 @@ type Workflow struct {
 }
 type Workflows struct {
 	Action       string     `json:"action"`
-	LastInsertId int64      `json:"lastinsertid"`
+	LastInsertId int        `json:"lastinsertid"`
 	Count        int        `json:"count"`
 	Workflows    []Workflow `json:"workflows"`
 }
 type WorkflowStates struct {
 	Action        string          `json:"action"`
-	LastInsertId  int64           `json:"lastinsertid"`
+	LastInsertId  int             `json:"lastinsertid"`
 	Count         int             `json:"count"`
 	Workflowstate []Workflowstate `json:"workflowstate"`
 }
 type Workflowstate struct {
-	Id            int64  `json:"id"`
-	WorkflowId    int64  `json:"workflowid"`
+	Id            int    `json:"id"`
+	WorkflowId    int    `json:"workflowid"`
 	Pathway       string `json:"pathway"`
 	NHSId         string `json:"nhsid"`
 	Version       int    `json:"version"`
@@ -153,83 +148,86 @@ type Workflowstate struct {
 
 type XDWS struct {
 	Action       string `json:"action"`
-	LastInsertId int64  `json:"lastinsertid"`
+	LastInsertId int    `json:"lastinsertid"`
 	Count        int    `json:"count"`
 	XDW          []XDW  `json:"xdws"`
 }
 type XDW struct {
-	Id        int64  `json:"id"`
+	Id        int    `json:"id"`
 	Name      string `json:"name"`
 	IsXDSMeta bool   `json:"isxdsmeta"`
 	XDW       string `json:"xdw"`
 }
 type IdMaps struct {
 	Action       string
-	LastInsertId int64
+	LastInsertId int
 	Where        string
 	Value        string
 	Cnt          int
 	LidMap       []IdMap
 }
 type IdMap struct {
-	Id   int64  `json:"id"`
+	Id   int    `json:"id"`
 	User string `json:"user"`
 	Lid  string `json:"lid"`
 	Mid  string `json:"mid"`
 }
 
-// sort interface for events
-type EventsList []Event
+var (
+	DBConn       *sql.DB
+	cachedIDMaps = []IdMap{}
+	cached       time.Time
+)
 
-func (e EventsList) Len() int {
-	return len(e)
+// sort interface for events
+func (e Events) Len() int {
+	return len(e.Events)
 }
-func (e EventsList) Less(i, j int) bool {
-	return e[i].Id > e[j].Id
+func (e Events) Less(i, j int) bool {
+	return e.Events[i].Id > e.Events[j].Id
 }
-func (e EventsList) Swap(i, j int) {
-	e[i], e[j] = e[j], e[i]
+func (e Events) Swap(i, j int) {
+	e.Events[i], e.Events[j] = e.Events[j], e.Events[i]
 }
 
 // sort interface for idmaps
-type IDMapsList []IdMap
-
-func (e IDMapsList) Len() int {
-	return len(e)
+func (e IdMaps) Len() int {
+	return len(e.LidMap)
 }
-func (e IDMapsList) Less(i, j int) bool {
-	return e[i].Lid > e[j].Lid
+func (e IdMaps) Less(i, j int) bool {
+	return e.LidMap[i].Lid > e.LidMap[j].Lid
 }
-func (e IDMapsList) Swap(i, j int) {
-	e[i], e[j] = e[j], e[i]
+func (e IdMaps) Swap(i, j int) {
+	e.LidMap[i], e.LidMap[j] = e.LidMap[j], e.LidMap[i]
 }
 
 // sort interface for Workflows
-type WorkflowsList []Workflow
-
-func (e WorkflowsList) Len() int {
-	return len(e)
+func (e Workflows) Len() int {
+	return len(e.Workflows)
 }
-func (e WorkflowsList) Less(i, j int) bool {
-	return e[i].Pathway > e[j].Pathway
+func (e Workflows) Less(i, j int) bool {
+	return e.Workflows[i].Pathway > e.Workflows[j].Pathway
 }
-func (e WorkflowsList) Swap(i, j int) {
-	e[i], e[j] = e[j], e[i]
+func (e Workflows) Swap(i, j int) {
+	e.Workflows[i], e.Workflows[j] = e.Workflows[j], e.Workflows[i]
 }
 
-type TUK_DB_Interface interface {
+type DBInterface interface {
 	newEvent() error
 }
 
-func NewDBEvent(i TUK_DB_Interface) error {
+func NewDBEvent(i DBInterface) error {
 	return i.newEvent()
 }
+
+// DBConnection
 func CloseDBConnection() {
 	if DBConn != nil {
 		DBConn.Close()
+		log.Println("Closed DB Connection")
 	}
 }
-func (i *TukDBConnection) newEvent() error {
+func (i *DBConnection) newEvent() error {
 	var err error
 	i.setDBCredentials()
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true&timeout=%s&readTimeout=%s",
@@ -246,17 +244,7 @@ func (i *TukDBConnection) newEvent() error {
 	}
 	return err
 }
-
-func (i *TukDBConnection) setDBCredentials() {
-	if i.DBUser == "" {
-		i.DBUser = "root"
-	}
-	if i.DBPassword == "" {
-		i.DBPassword = "rootPass"
-	}
-	if i.DBHost == "" {
-		i.DBHost = "localhost"
-	}
+func (i *DBConnection) setDBCredentials() {
 	if i.DBPort == "" {
 		i.DBPort = "3306"
 	}
@@ -279,12 +267,44 @@ func (i *TukDBConnection) setDBCredentials() {
 		i.DBReadTimeout = i.DBReadTimeout + "s"
 	}
 }
-func GetSubscriptions(brokerref string, pathway string, expression string) Subscriptions {
+
+// Subscriptions
+func GetPathwaySubs(pathway string) Subscriptions {
+	sub := Subscription{Pathway: pathway}
+	return GetSubs(sub)
+}
+func HasBrokerSub(expression string) (bool, string) {
+	sub := Subscription{Expression: expression, Topic: tukcnst.DSUB_TOPIC_TYPE_CODE}
+	subs := GetSubs(sub)
+	if subs.Count > 0 {
+		for _, v := range subs.Subscriptions {
+			if v.BrokerRef != "" {
+				return true, subs.Subscriptions[1].BrokerRef
+			}
+		}
+	}
+	return false, ""
+}
+func HasUserSub(usersub Subscription) bool {
+	subs := GetSubs(usersub)
+	return subs.Count == 1
+}
+func GetSubs(sub Subscription) Subscriptions {
 	subs := Subscriptions{Action: tukcnst.SELECT}
-	sub := Subscription{BrokerRef: brokerref, Pathway: pathway, Expression: expression}
 	subs.Subscriptions = append(subs.Subscriptions, sub)
-	subs.newEvent()
+	NewDBEvent(&subs)
 	return subs
+}
+func NewSub(sub Subscription) error {
+	subs := Subscriptions{Action: tukcnst.INSERT}
+	subs.Subscriptions = append(subs.Subscriptions, sub)
+	return NewDBEvent(&subs)
+}
+func CancelEsub(sub Subscription) Subscriptions {
+	subs := Subscriptions{Action: tukcnst.DELETE}
+	subs.Subscriptions = append(subs.Subscriptions, sub)
+	usersub := Subscription{User: sub.User, Org: sub.Org, Role: sub.Role}
+	return GetSubs(usersub)
 }
 func (i *Subscriptions) newEvent() error {
 	var err error
@@ -332,12 +352,23 @@ func (i *Subscriptions) newEvent() error {
 	}
 	return err
 }
-func GetEvents(user string, pathway string, nhsid string, expression string, taskid int, version int) Events {
-	events := Events{Action: tukcnst.SELECT}
-	event := Event{User: user, Pathway: pathway, NhsId: nhsid, Expression: expression, TaskId: taskid, Version: version}
-	events.Events = append(events.Events, event)
-	events.newEvent()
-	return events
+
+// Events
+func GetTaskNotes(pwy string, nhsid string, taskid int, ver int) (string, error) {
+	notes := ""
+	evs := Events{Action: tukcnst.SELECT}
+	ev := Event{Pathway: pwy, NhsId: nhsid, TaskId: taskid, Version: ver}
+	evs.Events = append(evs.Events, ev)
+	err := NewDBEvent(&evs)
+	if err == nil && evs.Count > 0 {
+		for _, note := range evs.Events {
+			if note.Id != 0 {
+				notes = notes + note.Comments + "\n"
+			}
+		}
+		log.Printf("Found TaskId %v Notes %s", taskid, notes)
+	}
+	return notes, err
 }
 func (i *Events) newEvent() error {
 	var err error
@@ -385,36 +416,14 @@ func (i *Events) newEvent() error {
 	}
 	return err
 }
-func GetAllWorkflows() Workflows {
+
+// Workflows
+func GetWorkflows(pathway string, nhsid string, version int, status string) (Workflows, error) {
 	wfs := Workflows{Action: tukcnst.SELECT}
-	wfs.newEvent()
-	return wfs
-}
-func GetPathwayWorkflows(pathway string) Workflows {
-	wfs := Workflows{Action: tukcnst.SELECT}
-	wf := Workflow{Pathway: pathway}
+	wf := Workflow{Pathway: pathway, NHSId: nhsid, Version: version, Status: status}
 	wfs.Workflows = append(wfs.Workflows, wf)
-	wfs.newEvent()
-	return wfs
-}
-func GetActiveWorkflowNames() map[string]string {
-	var activewfs = make(map[string]string)
-	wfs := GetWorkflows("", "", "", "", -1, false, tukcnst.STATUS_OPEN)
-	log.Printf("Open Workflow Count %v", wfs.Count)
-	for _, v := range wfs.Workflows {
-		if v.Id != 0 {
-			activewfs[v.Pathway] = ""
-		}
-	}
-	log.Printf("Set %v Active Pathway Names - %s", len(activewfs), activewfs)
-	return activewfs
-}
-func GetWorkflows(pathway string, nhsid string, xdwkey string, xdwuid string, version int, published bool, status string) Workflows {
-	wfs := Workflows{Action: tukcnst.SELECT}
-	wf := Workflow{Pathway: pathway, NHSId: nhsid, XDW_Key: xdwkey, XDW_UID: xdwuid, Version: version, Published: published, Status: status}
-	wfs.Workflows = append(wfs.Workflows, wf)
-	wfs.newEvent()
-	return wfs
+	err := wfs.newEvent()
+	return wfs, err
 }
 func (i *Workflows) newEvent() error {
 	var err error
@@ -461,85 +470,22 @@ func (i *Workflows) newEvent() error {
 	}
 	return err
 }
-func (i *WorkflowStates) newEvent() error {
-	var err error
-	var stmntStr = "SELECT * FROM workflowstate"
-	var rows *sql.Rows
-	var vals []interface{}
-	ctx, cancelCtx := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancelCtx()
-	if len(i.Workflowstate) > 0 {
-		if stmntStr, vals, err = createPreparedStmnt(i.Action, "workflowstate", reflectStruct(reflect.ValueOf(i.Workflowstate[0]))); err != nil {
-			log.Println(err.Error())
-			return err
-		}
-	}
-	sqlStmnt, err := DBConn.PrepareContext(ctx, stmntStr)
-	if err != nil {
-		log.Println(err.Error())
-		return err
-	}
-	defer sqlStmnt.Close()
 
-	if i.Action == tukcnst.SELECT {
-		rows, err = setRows(ctx, sqlStmnt, vals)
-		if err != nil {
-			log.Println(err.Error())
-			return err
-		}
-		for rows.Next() {
-			workflow := Workflowstate{}
-			if err := rows.Scan(&workflow.Id, &workflow.WorkflowId, &workflow.Pathway, &workflow.NHSId, &workflow.Version, &workflow.Published, &workflow.Created, &workflow.CreatedBy, &workflow.Status, &workflow.CompleteBy, &workflow.LastUpdate, &workflow.Owner, &workflow.Overdue, &workflow.Escalated, &workflow.TargetMet, &workflow.InProgress, &workflow.Duration, &workflow.TimeRemaining); err != nil {
-				switch {
-				case err == sql.ErrNoRows:
-					return nil
-				default:
-					log.Println(err.Error())
-					return err
-				}
-			}
-			i.Workflowstate = append(i.Workflowstate, workflow)
-			i.Count = i.Count + 1
-		}
-	} else {
-		i.LastInsertId, err = setLastID(ctx, sqlStmnt, vals)
-	}
-	return err
-}
-func GetWorkflowDefinitionNames(user string) map[string]string {
-	names := make(map[string]string)
+// XDWs
+func GetPathways(user string) map[string]string {
+	var names = make(map[string]string)
 	xdws := XDWS{Action: tukcnst.SELECT}
 	xdw := XDW{IsXDSMeta: false}
 	xdws.XDW = append(xdws.XDW, xdw)
 	if err := xdws.newEvent(); err == nil {
 		for _, xdw := range xdws.XDW {
 			if xdw.Id > 0 {
-				names[xdw.Name] = GetIDMapsMappedId(user, xdw.Name)
+				names[xdw.Name] = strings.TrimSpace(GetIDMapsMappedId(user, xdw.Name))
 			}
 		}
 	}
-	log.Printf("Returning %v XDW Definition Names", len(names))
+	log.Printf("%v Pathways Defined - %v", len(names), names)
 	return names
-}
-func GetWorkflowXDSMetaNames() []string {
-	var xdwdefs []string
-	xdws := XDWS{Action: tukcnst.SELECT}
-	xdw := XDW{IsXDSMeta: true}
-	xdws.XDW = append(xdws.XDW, xdw)
-	if err := xdws.newEvent(); err == nil {
-		for _, xdw := range xdws.XDW {
-			if xdw.Id > 0 {
-				xdwdefs = append(xdwdefs, xdw.Name)
-			}
-		}
-	}
-	log.Printf("Returning %v XDW Meta file names", len(xdwdefs))
-	return xdwdefs
-}
-func GetWorkflowDefinitions() (XDWS, error) {
-	xdws := XDWS{Action: tukcnst.SELECT}
-	err := xdws.newEvent()
-	return xdws, err
 }
 func GetWorkflowDefinition(name string) (XDW, error) {
 	var err error
@@ -555,19 +501,17 @@ func GetWorkflowDefinition(name string) (XDW, error) {
 	}
 	return xdw, err
 }
-func GetWorkflowXDSMeta(name string) (XDW, error) {
+func GetWorkflowXDSMeta(name string) (string, error) {
 	var err error
 	xdws := XDWS{Action: tukcnst.SELECT}
 	xdw := XDW{Name: name, IsXDSMeta: true}
 	xdws.XDW = append(xdws.XDW, xdw)
 	if err = xdws.newEvent(); err == nil {
 		if xdws.Count == 1 {
-			return xdws.XDW[1], nil
-		} else {
-			return xdw, errors.New("no xdw meta registered for " + name)
+			return xdws.XDW[1].XDW, nil
 		}
 	}
-	return xdw, err
+	return "", errors.New("no xdw meta registered for " + name)
 }
 
 func PersistWorkflowDefinition(name string, config string, isxdsmeta bool) error {
@@ -625,23 +569,62 @@ func (i *XDWS) newEvent() error {
 	}
 	return err
 }
-func GetTemplate(templatename string, isxml bool) (Template, error) {
+
+// Workflowstates
+func (i *WorkflowStates) newEvent() error {
 	var err error
-	tmplts := Templates{Action: tukcnst.SELECT}
-	tmplt := Template{Name: templatename, IsXML: isxml}
-	tmplts.Templates = append(tmplts.Templates, tmplt)
-	if err = tmplts.newEvent(); err == nil && tmplts.Count == 1 {
-		return tmplts.Templates[1], nil
+	var stmntStr = "SELECT * FROM workflowstate"
+	var rows *sql.Rows
+	var vals []interface{}
+	ctx, cancelCtx := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancelCtx()
+	if len(i.Workflowstate) > 0 {
+		if stmntStr, vals, err = createPreparedStmnt(i.Action, "workflowstate", reflectStruct(reflect.ValueOf(i.Workflowstate[0]))); err != nil {
+			log.Println(err.Error())
+			return err
+		}
 	}
-	return tmplt, err
+	sqlStmnt, err := DBConn.PrepareContext(ctx, stmntStr)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	defer sqlStmnt.Close()
+
+	if i.Action == tukcnst.SELECT {
+		rows, err = setRows(ctx, sqlStmnt, vals)
+		if err != nil {
+			log.Println(err.Error())
+			return err
+		}
+		for rows.Next() {
+			workflow := Workflowstate{}
+			if err := rows.Scan(&workflow.Id, &workflow.WorkflowId, &workflow.Pathway, &workflow.NHSId, &workflow.Version, &workflow.Published, &workflow.Created, &workflow.CreatedBy, &workflow.Status, &workflow.CompleteBy, &workflow.LastUpdate, &workflow.Owner, &workflow.Overdue, &workflow.Escalated, &workflow.TargetMet, &workflow.InProgress, &workflow.Duration, &workflow.TimeRemaining); err != nil {
+				switch {
+				case err == sql.ErrNoRows:
+					return nil
+				default:
+					log.Println(err.Error())
+					return err
+				}
+			}
+			i.Workflowstate = append(i.Workflowstate, workflow)
+			i.Count = i.Count + 1
+		}
+	} else {
+		i.LastInsertId, err = setLastID(ctx, sqlStmnt, vals)
+	}
+	return err
 }
-func PersistTemplate(templatename string, isxml bool, templatestr string) error {
+
+// Templates
+func PersistTemplate(user string, templatename string, templatestr string) error {
 	tmplts := Templates{Action: tukcnst.DELETE}
-	tmplt := Template{Name: templatename, IsXML: isxml}
+	tmplt := Template{Name: templatename, User: user}
 	tmplts.Templates = append(tmplts.Templates, tmplt)
 	tmplts.newEvent()
 	tmplts = Templates{Action: tukcnst.INSERT}
-	tmplt = Template{Name: templatename, IsXML: isxml, Template: templatestr}
+	tmplt = Template{Name: templatename, Template: templatestr}
 	tmplts.Templates = append(tmplts.Templates, tmplt)
 	return tmplts.newEvent()
 }
@@ -673,7 +656,7 @@ func (i *Templates) newEvent() error {
 		}
 		for rows.Next() {
 			tmplt := Template{}
-			if err := rows.Scan(&tmplt.Id, &tmplt.Name, &tmplt.IsXML, &tmplt.Template, &tmplt.User); err != nil {
+			if err := rows.Scan(&tmplt.Id, &tmplt.Name, &tmplt.Template, &tmplt.User); err != nil {
 				switch {
 				case err == sql.ErrNoRows:
 					return nil
@@ -690,19 +673,33 @@ func (i *Templates) newEvent() error {
 	}
 	return err
 }
+
+// Idmaps
 func GetIDMapsMappedId(user string, localid string) string {
 	if user == "" {
 		user = "system"
 	}
-	idmaps := IdMaps{Action: tukcnst.SELECT}
-	idmap := IdMap{User: user}
-	idmaps.LidMap = append(idmaps.LidMap, idmap)
-	if err := idmaps.newEvent(); err != nil {
-		log.Println(err.Error())
+	duration := time.Duration(1) * time.Minute
+	expires := cached.Add(duration)
+	if len(cachedIDMaps) == 0 || time.Now().After(expires) {
+		idmaps := IdMaps{Action: tukcnst.SELECT}
+		if err := idmaps.newEvent(); err != nil {
+			log.Println(err.Error())
+		}
+		cachedIDMaps = idmaps.LidMap
+		cached = time.Now()
 	}
-	for _, idmap := range idmaps.LidMap {
-		if idmap.Lid == localid && idmap.User == user {
-			return idmap.Mid
+	for _, v := range cachedIDMaps {
+		if v.User == user && v.Lid == localid {
+			return v.Mid
+		}
+	}
+	if user != "system" {
+		user = "system"
+		for _, v := range cachedIDMaps {
+			if v.User == user && v.Lid == localid {
+				return v.Mid
+			}
 		}
 	}
 	return localid
@@ -770,6 +767,7 @@ func (i *IdMaps) newEvent() error {
 	return err
 }
 
+// Statics
 func (i *Statics) newEvent() error {
 	var err error
 	var stmntStr = tukcnst.SQL_DEFAULT_STATICS
@@ -815,89 +813,56 @@ func (i *Statics) newEvent() error {
 	}
 	return err
 }
-func GetTaskNotes(pwy string, nhsid string, taskid int, ver int) string {
-	notes := ""
-	evs := Events{Action: tukcnst.SELECT}
-	ev := Event{Pathway: pwy, NhsId: nhsid, TaskId: taskid, Version: ver}
-	evs.Events = append(evs.Events, ev)
-	err := NewDBEvent(&evs)
-	if err == nil && evs.Count > 0 {
-		for _, note := range evs.Events {
-			if note.Id != 0 {
-				notes = notes + note.Comments + "\n"
-			}
-		}
-		log.Printf("Found TaskId %v Notes %s", taskid, notes)
-	}
-	return notes
-}
+
 func reflectStruct(i reflect.Value) map[string]interface{} {
 	params := make(map[string]interface{})
 	structType := i.Type()
 	for f := 0; f < i.NumField(); f++ {
-		// field := structType.Field(f)
-		// fieldName := field.Name
-		// fieldType := field.Type
-		// switch fieldType.Kind() {
-		// case reflect.Int64:
-		// 	log.Printf("Field %s is of type int64\n", fieldName)
-		// 	val := i.Field(f).Interface().(int64)
-		// 	if val > 0 {
-		// 		params[strings.ToLower(structType.Field(f).Name)] = val
-		// 		log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), val)
+		field := structType.Field(f)
+		fieldName := field.Name
+		fieldType := field.Type
+		switch fieldType.Kind() {
+		case reflect.Int:
+			val := i.Field(f).Interface().(int)
+			if (strings.ToLower(fieldName) == "taskid" && val > -1) || (strings.ToLower(fieldName) != "taskid" && val > 0) {
+				params[strings.ToLower(fieldName)] = val
+				log.Printf("Reflected param %s : value %v", strings.ToLower(fieldName), val)
+			}
+		case reflect.Bool:
+			val := i.Field(f).Interface().(bool)
+			params[strings.ToLower(fieldName)] = val
+			log.Printf("Reflected param %s : value %v", strings.ToLower(fieldName), val)
+		case reflect.String:
+			val := i.Field(f).Interface().(string)
+			if len(val) > 0 {
+				params[strings.ToLower(fieldName)] = val
+				if len(i.Field(f).Interface().(string)) > 100 {
+					log.Printf("Reflected param %s : value (Truncated first 50 chars) %v", strings.ToLower(fieldName), i.Field(f).Interface().(string)[0:50])
+				} else {
+					log.Printf("Reflected param %s : value %s", strings.ToLower(fieldName), i.Field(f).Interface().(string))
+				}
+			}
+		default:
+			log.Printf("Field %s has an unknown type %v\n", fieldName, fieldType.Kind())
+		}
+
+		// if strings.EqualFold(fieldName, "version") || strings.EqualFold(fieldName, "LastInsertId") || strings.EqualFold(fieldName, "Id") || strings.EqualFold(fieldName, "TaskId") || strings.EqualFold(fieldName, "WorkflowId") {
+		// 	tint := i.Field(f).Interface().(int)
+		// 	if tint > 0 {
+		// 		params[strings.ToLower(fieldName)] = tint
+		// 		log.Printf("Reflected param %s : value %v", strings.ToLower(fieldName), tint)
 		// 	}
-		// case reflect.Int:
-		// 	log.Printf("Field %s is of type int\n", fieldName)
-		// 	val := i.Field(f).Interface().(int)
-		// 	if val != -1 {
-		// 		params[strings.ToLower(structType.Field(f).Name)] = val
-		// 		log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), val)
-		// 	}
-		// case reflect.Bool:
-		// 	log.Printf("Field %s is of type bool\n", fieldName)
-		// 	val := i.Field(f).Interface().(bool)
-		// 	params[strings.ToLower(structType.Field(f).Name)] = val
-		// 	log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), val)
-		// case reflect.String:
-		// 	log.Printf("Field %s is of type string\n", fieldName)
-		// 	val := i.Field(f).Interface().(string)
-		// 	if len(val) > 0 {
-		// 		params[strings.ToLower(structType.Field(f).Name)] = val
-		// 		if len(i.Field(f).Interface().(string)) > 100 {
-		// 			log.Printf("Reflected param %s : Truncated value %v", strings.ToLower(structType.Field(f).Name), i.Field(f).Interface().(string)[0:100])
-		// 		} else {
-		// 			log.Printf("Reflected param %s : value %s", strings.ToLower(structType.Field(f).Name), i.Field(f).Interface().(string))
+		// } else {
+		// 	if strings.EqualFold(fieldName, "published") || strings.EqualFold(fieldName, "isxdsmeta") {
+		// 		params[strings.ToLower(fieldName)] = i.Field(f).Interface()
+		// 		log.Printf("Reflected param %s : value %v", strings.ToLower(fieldName), i.Field(f).Interface())
+		// 	} else {
+		// 		if i.Field(f).Interface() != nil && len(i.Field(f).Interface().(string)) > 0 {
+		// 			params[strings.ToLower(fieldName)] = i.Field(f).Interface()
+		// 			log.Printf("Reflected param %s : value %v", strings.ToLower(fieldName), i.Field(f).Interface())
 		// 		}
 		// 	}
-		// default:
-		// 	log.Printf("Field %s has an unknown type %v\n", fieldName, fieldType.Kind())
 		// }
-
-		if strings.EqualFold(structType.Field(f).Name, "Id") || strings.EqualFold(structType.Field(f).Name, "EventID") || strings.EqualFold(structType.Field(f).Name, "LastInsertId") || strings.EqualFold(structType.Field(f).Name, "WorkflowId") {
-			tint64 := i.Field(f).Interface().(int64)
-			if tint64 > 0 {
-				params[strings.ToLower(structType.Field(f).Name)] = tint64
-				log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), tint64)
-			}
-		} else {
-			if strings.EqualFold(structType.Field(f).Name, "Version") || strings.EqualFold(structType.Field(f).Name, "TaskId") {
-				tint := i.Field(f).Interface().(int)
-				if tint != -1 {
-					params[strings.ToLower(structType.Field(f).Name)] = tint
-					log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), tint)
-				}
-			} else {
-				if strings.EqualFold(structType.Field(f).Name, "isxml") || strings.EqualFold(structType.Field(f).Name, "published") || strings.EqualFold(structType.Field(f).Name, "isxdsmeta") {
-					params[strings.ToLower(structType.Field(f).Name)] = i.Field(f).Interface()
-					log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), i.Field(f).Interface())
-				} else {
-					if i.Field(f).Interface() != nil && len(i.Field(f).Interface().(string)) > 0 {
-						params[strings.ToLower(structType.Field(f).Name)] = i.Field(f).Interface()
-						log.Printf("Reflected param %s : value %v", strings.ToLower(structType.Field(f).Name), i.Field(f).Interface())
-					}
-				}
-			}
-		}
 	}
 	return params
 }
@@ -981,7 +946,7 @@ func setRows(ctx context.Context, sqlStmnt *sql.Stmt, vals []interface{}) (*sql.
 		return sqlStmnt.QueryContext(ctx)
 	}
 }
-func setLastID(ctx context.Context, sqlStmnt *sql.Stmt, vals []interface{}) (int64, error) {
+func setLastID(ctx context.Context, sqlStmnt *sql.Stmt, vals []interface{}) (int, error) {
 	if len(vals) > 0 {
 		sqlrslt, err := sqlStmnt.ExecContext(ctx, vals...)
 		if err != nil {
@@ -993,7 +958,7 @@ func setLastID(ctx context.Context, sqlStmnt *sql.Stmt, vals []interface{}) (int
 			log.Println(err.Error())
 			return 0, err
 		} else {
-			return id, nil
+			return int(id), nil
 		}
 	}
 	return 0, nil
